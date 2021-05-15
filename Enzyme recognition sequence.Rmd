@@ -1,0 +1,69 @@
+---
+title: "Enzyme recognition sequence in DNA"
+author: "Joaquín Rodrigo Ponce de León Conconi"
+date: "5/14/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We first need to import the library stingr
+```{r}
+library(stringr)
+```
+
+Next we define our example DNA
+```{r}
+dna <- "GAATTCGAGCTCGGTACCCGGGGATCCTCTAGAGTCGACCTGCAGGCATGCAAGCTT"
+```
+
+Now we define a function that takes the DNA sequence and the enzyme recognition sequence (both 5' to 3'), and displays "The recognition sequence was not found" if the enzyme recognition sequence was not found in the DNA strand or displays the DNA sequence showcasing in lowercase letters the enzyme recognition sequence along with an answer TRUE or FALSE to confirm that the final answer is the same as the DNA sequence taken by the function, which should always be TRUE. Also, if the DNA sequence is shorter than the enzyme recognition sequence, the function returns an error.
+```{r}
+enz_seq <- function(seq_dn, seq_en){ #DNA sequence and enzyme recognition sequence asked
+  seq_dn <- toupper(seq_dn)#change seq_dn uppercase
+  seq_en <- toupper(seq_en)#change seq_en to uppercase
+  seq_dns <- strsplit(seq_dn, "") #seq_dn is split 
+  len_seq <- length(seq_dns[[1]]) #The number of base pairs is counted from the first element of the list
+  if (length(strsplit(seq_en, "")[[1]])>len_seq){
+    return("The DNA sequence is shorter than the enzyme recognition sequence")
+  }else{
+    A <- "" #Blank final answer variable 
+    if (str_detect(seq_dn, seq_en)==F){ #If the sequence is not detected the it returns...
+      return("The recognition sequence was not found")
+    }else{ #Else, the code to display the DNA seq. along with the enzyme recognition sequence is saved in A
+      locs <- str_locate(seq_dn, seq_en) #The locations within seq_dn where seq_en begins and ends
+      if (locs[1]==1){#If the beginning of seq_en is in index 1 of seq_dn, then
+        A <- c(tolower(seq_dns[[1]][locs[1]:locs[2]]), seq_dns[[1]][locs[2]+1: len_seq])
+      }else if (locs[2]==len_seq){#Else if the end of seq_en is in the last index of seq_dn
+        A <- c(seq_dns[[1]][1:locs[1]-1], tolower(seq_dns[[1]][locs[1]:locs[2]]))
+      }else{
+        A <- c(seq_dns[[1]][1:locs[1]-1],tolower(seq_dns[[1]][locs[1]:locs[2]]),seq_dns[[1]][locs[2]+1:len_seq])
+      }
+    }
+    A <- paste(na.omit(A), collapse = "")
+    return(c(A, identical(toupper(A), seq_dn)))
+  }
+}
+```
+
+Let's do some examples with different enzymes that have distinct recognition sequences
+```{r}
+enz_seq(dna, "GAATTC")#EcoRI
+enz_seq(dna, "GAGCTC")#SacI
+enz_seq(dna, "GGTACC")#KpnI
+enz_seq(dna, "CCCGGG")#SmaI
+enz_seq(dna, "GGATCC")#BamHI
+enz_seq(dna, "TCTAGA")#XbaI
+enz_seq(dna, "GTCGAC")#SalI
+enz_seq(dna, "CTGCAG")#PstI
+enz_seq(dna, "GCATGC")#SphI
+enz_seq(dna, "AAGCTT")#HindIII
+enz_seq(dna, "aagctt")#You can even enter the senquence in lowercase
+enz_seq(dna, "TTTACG")#Negative control with sequence that's not in dna
+enz_seq("AAATGCCGTGATGCCGTTTTAGGCTGCAG", "GGATCC")#Negative control with DNA sequence that doesn't contain the recognition sequence of BamHI
+enz_seq("GGATCC", dna)#Negative control placing the BamHI recognition sequence in the dna position
+
+```
+
